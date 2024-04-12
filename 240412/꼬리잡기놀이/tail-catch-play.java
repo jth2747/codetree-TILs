@@ -77,7 +77,9 @@ public class Main {
 			
 			int ctNum = throwBall(div, rest);
 			
-			changeTeam(ctNum);
+			if(ctNum != -1) {
+				changeTeam(ctNum);				
+			}
 		}
 		
 		
@@ -149,7 +151,7 @@ public class Main {
 				return teamNum[i][rest];
 			}
 		}
-		return 0;
+		return -1;
 	}
 	
 	public static void getPoint(int tNum, int r, int c) {
@@ -187,6 +189,11 @@ public class Main {
 			break;
 		}
 		
+		if(team[tNum].get(0).r==fr && team[tNum].get(0).c==fc) {
+			//1번이 갈곳이 없었음
+			return;
+		}
+		
 		//1번 뒤따라가기
 		for (int i = 1; i < size; i++) {
 			int tr = team[tNum].get(i).r;
@@ -222,8 +229,13 @@ public class Main {
 				continue;
 			}
 			
-			//다음 칸과 나와의 차이가 1 이상이라면?
+			//나보다 작으면
 			if(map[nr][nc] < map[r][c]) {
+				continue;
+			}
+			
+			//차이가 1보다 크면, 1 -> 3 이렇게 가는 경우
+			if(map[nr][nc] - map[r][c] > 1) {
 				continue;
 			}
 			
