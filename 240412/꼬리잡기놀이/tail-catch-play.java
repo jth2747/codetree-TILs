@@ -175,7 +175,8 @@ public class Main {
 			
 			if(nr >= n || nc >= n || nr < 0 || nc < 0) continue;
 			
-			if(map[nr][nc] != 4) continue;
+			if(map[nr][nc] < 3) continue;
+			
 			
 			//map 에서 원래 칸부터 4로 바꿔주기
 			map[team[tNum].get(0).r][team[tNum].get(0).c] = 4;
@@ -188,18 +189,20 @@ public class Main {
 			teamNum[nr][nc] = tNum;
 			break;
 		}
-		
+		/*
 		if(team[tNum].get(0).r==fr && team[tNum].get(0).c==fc) {
 			//1번이 갈곳이 없었음
 			return;
 		}
-		
+		*/
 		//1번 뒤따라가기
 		for (int i = 1; i < size; i++) {
 			int tr = team[tNum].get(i).r;
 			int tc = team[tNum].get(i).c;
 			
-			map[tr][tc] = 4;
+			if(map[tr][tc] != 1) {
+				map[tr][tc] = 4;				
+			}
 			teamNum[tr][tc] = -1;
 			
 			team[tNum].get(i).r = fr;
