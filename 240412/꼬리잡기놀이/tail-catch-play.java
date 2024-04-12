@@ -173,7 +173,7 @@ public class Main {
 			
 			if(nr >= n || nc >= n || nr < 0 || nc < 0) continue;
 			
-			if(map[nr][nc] != 4 && map[nr][nc] == 0) continue;
+			if(map[nr][nc] != 4) continue;
 			
 			//map 에서 원래 칸부터 4로 바꿔주기
 			map[team[tNum].get(0).r][team[tNum].get(0).c] = 4;
