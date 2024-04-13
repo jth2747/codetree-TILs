@@ -135,20 +135,20 @@ public class Main {
 		}
 		else if(dir==2) {
 			for (int i = n-1; i >= 0; i--) {
-				if(map[rest][i] == 4 || map[rest][i] == 0) continue;
+				if(map[(n-1)-rest][i] == 4 || map[(n-1)-rest][i] == 0) continue;
 				
-				getPoint(teamNum[rest][i], rest, i);
+				getPoint(teamNum[(n-1)-rest][i], (n-1)-rest, i);
 				
-				return teamNum[rest][i];
+				return teamNum[(n-1)-rest][i];
 			}
 		}
 		else {
 			for (int i = 0; i < n; i++) {
-				if(map[i][rest] == 4 || map[i][rest] == 0) continue;
+				if(map[i][(n-1)-rest] == 4 || map[i][(n-1)-rest] == 0) continue;
 				
-				getPoint(teamNum[i][rest], i, rest);
+				getPoint(teamNum[i][(n-1)-rest], i, (n-1)-rest);
 				
-				return teamNum[i][rest];
+				return teamNum[i][(n-1)-rest];
 			}
 		}
 		return -1;
