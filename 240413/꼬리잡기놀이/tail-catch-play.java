@@ -72,8 +72,8 @@ public class Main {
 				move(j);				
 			}
 			//공던지기 방향 체크
-			int div = (i / 7) % 4;
-			int rest = (i % 7);
+			int div = (i / n) % 4;
+			int rest = (i % n);
 			
 			int ctNum = throwBall(div, rest);
 			
