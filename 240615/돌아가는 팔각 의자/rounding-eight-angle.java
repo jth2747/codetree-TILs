@@ -27,11 +27,23 @@ public class Main {
 			d = Integer.parseInt(st.nextToken());
 			
 			int[] dir = new int[4];
-			boolean[] visited = new boolean[4];
 			
 			dir[n] = d;
-			visited[n] = true;
-			rotateCheck(n, d, dir, visited);
+			
+			//왼쪽 조사
+			for (int j = n-1; j >= 0 ; j--) {
+				if(arr[j][2] != arr[j+1][6]) {
+					dir[j] = dir[j+1] * -1;
+				}
+			}
+			
+			//오른쪽 조사
+			for (int j = n+1; j < 4; j++) {
+				if(arr[j][6] != arr[j-1][2]) {
+					dir[j] = dir[j-1] * -1;
+				}
+			}
+			
 
 			for (int j = 0; j < dir.length; j++) {
 				if(dir[j] == 0) continue;
@@ -44,27 +56,7 @@ public class Main {
 		
 		System.out.println(ans);
 	}
-	
-	public static void rotateCheck(int n, int d, int[] dir, boolean[] visited) {
-		if(n+1 >= 0 && n+1 < 4) {
-			if(!visited[n+1] && arr[n][2] != arr[n+1][6]) {
-				dir[n+1] = d * -1;
-				visited[n+1] = true;
-				rotateCheck(n+1, dir[n+1], dir, visited);
-			}
-			visited[n+1] = true;
-		}
-		if(n-1 >= 0 && n-1 < 4) {
-			if(!visited[n-1] && arr[n][6] != arr[n-1][2]) {
-				dir[n-1] = d * -1;
-				visited[n-1] = true;
-				rotateCheck(n-1, dir[n-1], dir, visited);				
-			}
-			visited[n-1] = true;
-		}
-		
-		
-	}
+
 	
 	public static void rotate(int num, int dir) {
 		int[] temp = new int[8];
