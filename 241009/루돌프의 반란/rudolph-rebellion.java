@@ -76,7 +76,21 @@ public class Main {
 			for (int j = 1; j <= P; j++) {
 				if(out[j]==0) score[j]++;
 			}
-			
+			/*
+			System.out.println("round: " + round + "-----------------------------------------------------------------------------");
+			System.out.print("out: => ");
+			for (int j = 1; j <= P; j++) {
+				System.out.printf("%3d", out[j]);
+				System.out.printf(" ");
+			}
+			System.out.println();
+			System.out.print("scr: => ");
+			for (int j = 1; j <= P; j++) {
+				System.out.printf("%3d", score[j]);
+				System.out.printf(" ");
+			}
+			System.out.println();
+			*/
 		}
 		
 		for (int j = 1; j <= P; j++) {
@@ -240,48 +254,52 @@ public class Main {
 		}
 		
 		// 일단 이동함
+		// 이동하지마 
 		sanList[sNum].r = nr;
 		sanList[sNum].c = nc;
 		
 		// if 산타가 있으면 상호작용
 		// 6. 상호작용
 		if(map[nr][nc] != 0) {
-			interact(sNum, exScore, exDir);
+			interact(map[nr][nc], exScore, exDir);
 		} else {
-			map[nr][nc] = sNum;
 		}
+		map[nr][nc] = sNum;
 		
 	}
 	
 	public static void interact(int curNum, int val, int dir) {
+		int nextNum = 0;
 		while(true) {
 			int curr = sanList[curNum].r;
 			int curc = sanList[curNum].c;
 			
-			// 그 자리에 있던 산타 넘버
-			int nextNum = map[curr][curc];
-			
 			// 1칸 이동할 위치
-			int nr = sanList[nextNum].r + dr8[dir];
-			int nc = sanList[nextNum].c + dc8[dir];
+			int nr = sanList[curNum].r + dr8[dir];
+			int nc = sanList[curNum].c + dc8[dir];
 			
 			// 게임판 바깥
 			if(nr < 0 || nc < 0 || nr >= N || nc >= N) {
-				out[nextNum] = 1;
+				out[curNum] = 1;
 				break;
 			}
 			
-			sanList[nextNum].r = nr;
-			sanList[nextNum].c = nc;
+			sanList[curNum].r = nr;
+			sanList[curNum].c = nc;
 			
 			if(map[nr][nc] == 0) {
-				map[curr][curc] = curNum;
-				map[nr][nc] = nextNum;
+				map[nr][nc] = curNum;
 				break;
+			} else {
+				int temp = curNum;
+				curNum = map[nr][nc];
+				
+				map[curr][curc] = 0;
+				map[nr][nc] = temp;
 			}
 			
 			// 반복 계속 돌기위한 산타넘버 체인지
-			curNum = nextNum;
+			//curNum = nextNum;
 		}
 	}
 	
