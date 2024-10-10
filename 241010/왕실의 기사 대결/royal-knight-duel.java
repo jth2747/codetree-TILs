@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
@@ -124,10 +126,23 @@ public class Main {
 	
 	public static boolean check(int knum, int dir) {
 		checked[knum] = 1;
-		int curr = kList[knum].r;
-		int curc = kList[knum].c;
-		for (int i = curr; i < curr+w[knum]; i++) {
-			for (int j = curc; j < curc+h[knum]; j++) { 
+		int currfrom = kList[knum].r;
+		int curcfrom = kList[knum].c;
+		int currto = currfrom + w[knum];
+		int curcto = curcfrom + h[knum];
+//		if(dir == 0) {
+//			currto = currfrom + 1;
+//		} else if(dir == 1) {
+//			curcfrom = curcto;
+//			curcto = curcto + 1;
+//		} else if(dir == 2) {
+//			currfrom = currto;
+//			currto = currto + 1;
+//		} else {
+//			curcto = curcfrom + 1;
+//		}
+		for (int i = currfrom; i < currto; i++) {
+			for (int j = curcfrom; j < curcto; j++) { 
 				int nr = i + dr[dir];
 				int nc = j + dc[dir];
 				
@@ -138,7 +153,7 @@ public class Main {
 				if(obs[nr][nc] == 2) return false;
 				
 				//나자신은 다음꺼그냥 보기
-				if(map[nr][nc] == knum) continue;
+				//if(map[nr][nc] == knum) continue;
 				
 				if(map[nr][nc] != 0) {
 					if(checked[map[nr][nc]] == 1) continue;
@@ -151,6 +166,52 @@ public class Main {
 		}
 		
 		moved[knum] = 1;
+		return true;
+	}
+	
+	public static boolean checkQ(int knum, int dir) {
+		Queue<Integer> q = new LinkedList<Integer>();
+		
+		q.offer(knum);
+		checked[knum] = 1;
+		
+		
+		
+		while(!q.isEmpty()) {
+			int cur = q.poll();
+			
+			int currfrom = kList[cur].r;
+			int curcfrom = kList[cur].c;
+			int currto = currfrom + w[cur];
+			int curcto = curcfrom + h[cur];
+			for (int i = currfrom; i < currto; i++) {
+				for (int j = curcfrom; j < curcto; j++) { 
+					int nr = i + dr[dir];
+					int nc = j + dc[dir];
+					
+					if(nr < 0 || nc < 0 || nr >= L || nc >= L) {
+						return false;
+					}
+					
+					if(obs[nr][nc] == 2) return false;
+					
+					//나자신은 다음꺼그냥 보기
+					if(map[nr][nc] == cur) continue;
+					
+					if(map[nr][nc] != 0) {
+						q.offer(map[nr][nc]);
+						checked[map[nr][nc]] = 1;
+					}
+				}
+			}
+			
+		}
+		
+		
+		for (int i = 1; i <= N; i++) {
+			if(checked[i] == 1) moved[i] = 1;
+		}
+		
 		return true;
 	}
 	
