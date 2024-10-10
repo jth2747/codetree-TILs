@@ -1,316 +1,240 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
-	static int[] dr = {-1, 0, 1, 0}; //상우하좌 (산타용)
+	static int[] dr = {-1, 0, 1, 0}; //상우하좌
 	static int[] dc = {0, 1, 0, -1};
-	static int[] dr8 = {-1, -1, 0, 1, 1, 1, 0, -1};
-	static int[] dc8 = {0, 1, 1, 1, 0, -1, -1, -1};
-	static int N, M, P, C, D, round;
-	static int rdr, rdc;
-	static int[][] map;
-	static int[] isFaint, out, score;
-	static Santa[] sanList;
+	static int L, N, Q, curNum;
+	static Knight[] kList;
+	static int[][] obs, map;
+	static int[] health, w, h, d;
+	static int[] checked, moved, out;
 	public static void main(String[] args) throws IOException {
 		//System.setIn(new FileInputStream("src/input.txt"));
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = null;
 		
 		st = new StringTokenizer(br.readLine());
-		N = Integer.parseInt(st.nextToken()); //N*N
-		M = Integer.parseInt(st.nextToken()); //게임 턴수
-		P = Integer.parseInt(st.nextToken()); //산타 수
-		C = Integer.parseInt(st.nextToken()); //루돌프의 힘
-		D = Integer.parseInt(st.nextToken()); //산타의 힘
+		L = Integer.parseInt(st.nextToken()); //맵크기
+		N = Integer.parseInt(st.nextToken()); //기사 수
+		Q = Integer.parseInt(st.nextToken()); //명령 수
 		
-		map = new int[N][N];
+		obs = new int[L][L];
+		map = new int[L][L];
 		
-		st = new StringTokenizer(br.readLine());
-		
-		//루돌프 세팅
-		rdr = Integer.parseInt(st.nextToken()) - 1;
-		rdc = Integer.parseInt(st.nextToken()) - 1;
-		
-		sanList = new Santa[P+1];
-		for (int i = 0; i < P; i++) {
+		for (int i = 0; i < L; i++) {
 			st = new StringTokenizer(br.readLine());
-			int num = Integer.parseInt(st.nextToken());
+			for (int j = 0; j < L; j++) {
+				obs[i][j] = Integer.parseInt(st.nextToken());
+			}
+		}
+		
+		kList = new Knight[N+1];
+		health = new int[N+1];
+		w = new int[N+1];
+		h = new int[N+1];
+		d = new int[N+1];
+		out = new int[N+1];
+		
+		for (int i = 1; i <= N; i++) {
+			st = new StringTokenizer(br.readLine());
 			int r = Integer.parseInt(st.nextToken()) - 1;
 			int c = Integer.parseInt(st.nextToken()) - 1;
+			int wide = Integer.parseInt(st.nextToken());
+			int height = Integer.parseInt(st.nextToken());
+			int k = Integer.parseInt(st.nextToken());
 			
-			sanList[num] = new Santa(r, c);
+			kList[i] = new Knight(r, c);
+			health[i] = k;
+			w[i] = wide;
+			h[i] = height;
 		}
-		isFaint = new int[P+1]; // 0 0 0 0 0 ..
-		out = new int[P+1];
-		score = new int[P+1];
-		round = 0;
 		
-		for (int i = 0; i < M; i++) {
+		
+		for (int i = 0; i < Q; i++) {
 			drawMap();
-			// 현재 턴 값을 저장
-			round = i;
+			st = new StringTokenizer(br.readLine());
+			curNum = Integer.parseInt(st.nextToken());
+			int curDir = Integer.parseInt(st.nextToken());
 			
-			//1. 루돌프움직임
-			rudolfMove();
+			//디버그용 int -> boolean
+			checked = new int[N+1];
+			moved = new int[N+1];
 			
-			//3. 산타움직임
-			for (int j = 1; j <= P; j++) {
-				if(i < isFaint[j]) continue;
-				if(out[j] == 1) continue;
-				
-				santaMove(j);
+			boolean cflag = check(curNum, curDir);
+			
+			if(cflag) {
+				move(curNum, curDir);
+				drawMap();
+				damage();
 			}
 			
-			boolean isEnd = true;
-			for (int j = 1; j <= P; j++) {
-				if(out[j]==0) isEnd = false;
-			}
-			
-			if(isEnd) break;
 			
 			
-			for (int j = 1; j <= P; j++) {
-				if(out[j]==0) score[j]++;
-			}
-			/*
-			System.out.println("round: " + round + "-----------------------------------------------------------------------------");
-			System.out.print("out: => ");
-			for (int j = 1; j <= P; j++) {
-				System.out.printf("%3d", out[j]);
-				System.out.printf(" ");
-			}
-			System.out.println();
-			System.out.print("scr: => ");
-			for (int j = 1; j <= P; j++) {
-				System.out.printf("%3d", score[j]);
-				System.out.printf(" ");
-			}
-			System.out.println();
-			*/
-		}
-		
-		for (int j = 1; j <= P; j++) {
-			System.out.print(score[j] + " ");
-		}
-	}
-	
-	public static void drawMap() {
-		for (int i = 1; i <= P; i++) {
-			if(out[i] == 1) continue;
-			Santa cur = sanList[i];
-			map[cur.r][cur.c] = i;
-		}
-		
-		//map[rdr][rdc] = 99;
-	}
-	public static void santaMove(int sNum) {
-		//4. 산타 움직일 방향 선택
-		int dir = findDir(sNum);
-		
-		if(dir == -1) return;
-		
-		int nr = sanList[sNum].r + dr[dir];
-		int nc = sanList[sNum].c + dc[dir];
-		
-		map[sanList[sNum].r][sanList[sNum].c] = 0;
-		map[nr][nc] = sNum;
-		
-		sanList[sNum].r = nr;
-		sanList[sNum].c = nc;
-		
-
-		// if 해당 칸에 루돌프가 있다면
-		// 5. 충돌
-		if(nr == rdr && nc == rdc) {
-			crash(false, dir, nr, nc);			
-		}
-	}
-	
-	public static int findDir(int sNum) {
-		int dir = -1;
-		int curr = sanList[sNum].r;
-		int curc = sanList[sNum].c;
-		int max = Integer.MIN_VALUE;
-		
-		for (int i = 0; i < dc.length; i++) {
-			int nr = curr + dr[i];
-			int nc = curc + dc[i];
-			
-			if(nr < 0 || nc < 0 || nr >= N || nc >= N) continue;
-			
-			//다른산타가 있으면
-			if(map[nr][nc] != 0) continue;
-			
-			//기존 루돌프와의 거리
-			int orgDir = (curr-rdr)*(curr-rdr) + (curc-rdc)*(curc-rdc);
-			//움직일 위치에서의 루돌프와의 거리
-			int nexDir = (nr-rdr)*(nr-rdr) + (nc-rdc)*(nc-rdc);
-			
-			if(orgDir < nexDir) continue;
-			
-			int diff = orgDir - nexDir;
-			
-			//같음은 체크하지 않음
-			if(diff > max) {
-				max = diff;
-				dir = i;
-			}
-		}
-		
-		return dir;
-	}
-	
-	public static void rudolfMove() {
-		//2. 가까운 산타선택
-		int dir = findSanta();
-		
-		rdr += dr8[dir];
-		rdc += dc8[dir];
-		
-		//if 해당칸에 산타가 있다면
-				//5. 충돌
-		if(map[rdr][rdc] != 0) {
-			crash(true, dir, rdr, rdc);
-		}
-	}
-	
-	public static int findSanta() {
-		int min = Integer.MAX_VALUE;
-		int sanNum = 0;
-		
-		int sr = 0;
-		int sc = 0;
-		
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				// 아무것도 없으면 패스
-				if(map[i][j] == 0) continue;
-				
-				// 산타가 있다, 거리 계산
-				sr = sanList[map[i][j]].r;
-				sc = sanList[map[i][j]].c;
-				
-				int dis = (rdr-sr)*(rdr-sr) + (rdc-sc)*(rdc-sc);
-				
-				// 같으면 우선순위에 따라 최신화해준다
-				if(dis <= min) {
-					min = dis;
-					sanNum = map[i][j];
+			for (int j = 1; j <= N; j++) {
+				if(health[j] <= 0) {
+					out[j] = 1;
 				}
 			}
 		}
 		
-		sr = sanList[sanNum].r;
-		sc = sanList[sanNum].c;
+		int ans = 0;
+		for (int i = 1; i <= N; i++) {
+			if(out[i] == 1) continue;
+			
+			ans += d[i];
+		}
 		
-		if(sr < rdr && sc == rdc) return 0;
-		else if(sr < rdr && sc > rdc) return 1;
-		else if(sr == rdr && sc > rdc) return 2;
-		else if(sr > rdr && sc > rdc) return 3;
-		else if(sr > rdr && sc == rdc) return 4;
-		else if(sr > rdr && sc < rdc) return 5;
-		else if(sr == rdr && sc < rdc) return 6;
-		else return 7;
+		System.out.println(ans);
 	}
 	
-	public static void crash(boolean isRud, int dir, int r, int c) {
-		int exScore = 0;
-		//int exDis = 0;
-		int exDir = 0;
-		
-		//8방향으로 맞추기 위함
-		if(!isRud) dir = dir * 2;
-		
-		// 여기서 dir 은 8방향 기준임
-		if(isRud) {
-			exScore = C;
-			exDir = dir;
-		} else {
-			exScore = D;
-			exDir = (dir+4) % 8;
-		}
-		
-		int sNum = map[r][c];
-		
-		//누가 충돌했든 일단 기절처리
-		isFaint[sNum] = round + 2;
-		
-		//점수 처리
-		score[sNum] += exScore;
-		
-		// 산타 밀려날 위치
-		int nr = sanList[sNum].r + (dr8[exDir] * exScore);
-		int nc = sanList[sNum].c + (dc8[exDir] * exScore);
-		
-		// 암튼 일단 튕겨남
-		map[r][c] = 0;
-		
-		if(nr < 0 || nc < 0 || nr >= N || nc >= N) {
-			// out
-			out[sNum] = 1;
-			return;
-		}
-		
-		// 일단 이동함
-		// 이동하지마 
-		sanList[sNum].r = nr;
-		sanList[sNum].c = nc;
-		
-		// if 산타가 있으면 상호작용
-		// 6. 상호작용
-		if(map[nr][nc] != 0) {
-			interact(map[nr][nc], exScore, exDir);
-		} else {
-		}
-		map[nr][nc] = sNum;
-		
-	}
-	
-	public static void interact(int curNum, int val, int dir) {
-		int nextNum = 0;
-		while(true) {
-			int curr = sanList[curNum].r;
-			int curc = sanList[curNum].c;
-			
-			// 1칸 이동할 위치
-			int nr = sanList[curNum].r + dr8[dir];
-			int nc = sanList[curNum].c + dc8[dir];
-			
-			// 게임판 바깥
-			if(nr < 0 || nc < 0 || nr >= N || nc >= N) {
-				out[curNum] = 1;
-				break;
-			}
-			
-			sanList[curNum].r = nr;
-			sanList[curNum].c = nc;
-			
-			if(map[nr][nc] == 0) {
-				//map[curr][curc] = 0;
-				map[nr][nc] = curNum;
-				break;
-			} else {
-				int temp = curNum;
-				curNum = map[nr][nc];
+	public static void damage() {
+		for (int i = 0; i < L; i++) {
+			for (int j = 0; j < L; j++) {
+				if(map[i][j] == 0) continue;
 				
-				map[nr][nc] = 0;
-				map[nr][nc] = temp;
+				if(map[i][j] == curNum) continue;
+				if(moved[map[i][j]] == 0) continue;
+				
+				if(obs[i][j] == 1) {
+					health[map[i][j]]--;
+					d[map[i][j]]++;
+				}
 			}
-			
-			// 반복 계속 돌기위한 산타넘버 체인지
-			//curNum = nextNum;
 		}
 	}
 	
-	public static class Santa {
+	public static void move(int knum, int dir) {
+		for (int i = 1; i <= N; i++) {
+			if(moved[i] == 0) continue;
+			
+			int nr = kList[i].r + dr[dir];
+			int nc = kList[i].c + dc[dir];
+			
+			kList[i].r = nr;
+			kList[i].c = nc;
+		}
+	}
+	
+	public static boolean check(int knum, int dir) {
+		checked[knum] = 1;
+		int currfrom = kList[knum].r;
+		int curcfrom = kList[knum].c;
+		int currto = currfrom + w[knum];
+		int curcto = curcfrom + h[knum];
+//		if(dir == 0) {
+//			currto = currfrom + 1;
+//		} else if(dir == 1) {
+//			curcfrom = curcto;
+//			curcto = curcto + 1;
+//		} else if(dir == 2) {
+//			currfrom = currto;
+//			currto = currto + 1;
+//		} else {
+//			curcto = curcfrom + 1;
+//		}
+		for (int i = currfrom; i < currto; i++) {
+			for (int j = curcfrom; j < curcto; j++) { 
+				int nr = i + dr[dir];
+				int nc = j + dc[dir];
+				
+				if(nr < 0 || nc < 0 || nr >= L || nc >= L) {
+					return false;
+				}
+				
+				if(obs[nr][nc] == 2) return false;
+				
+				//나자신은 다음꺼그냥 보기
+				//if(map[nr][nc] == knum) continue;
+				
+				if(map[nr][nc] != 0) {
+					if(checked[map[nr][nc]] == 1) continue;
+					
+					boolean flag = check(map[nr][nc], dir);
+					
+					if(!flag) return false;
+				}
+			}
+		}
+		
+		moved[knum] = 1;
+		return true;
+	}
+	
+	public static boolean checkQ(int knum, int dir) {
+		Queue<Integer> q = new LinkedList<Integer>();
+		
+		q.offer(knum);
+		checked[knum] = 1;
+		
+		
+		
+		while(!q.isEmpty()) {
+			int cur = q.poll();
+			
+			int currfrom = kList[cur].r;
+			int curcfrom = kList[cur].c;
+			int currto = currfrom + w[cur];
+			int curcto = curcfrom + h[cur];
+			for (int i = currfrom; i < currto; i++) {
+				for (int j = curcfrom; j < curcto; j++) { 
+					int nr = i + dr[dir];
+					int nc = j + dc[dir];
+					
+					if(nr < 0 || nc < 0 || nr >= L || nc >= L) {
+						return false;
+					}
+					
+					if(obs[nr][nc] == 2) return false;
+					
+					//나자신은 다음꺼그냥 보기
+					if(map[nr][nc] == cur) continue;
+					
+					if(map[nr][nc] != 0) {
+						q.offer(map[nr][nc]);
+						checked[map[nr][nc]] = 1;
+					}
+				}
+			}
+			
+		}
+		
+		
+		for (int i = 1; i <= N; i++) {
+			if(checked[i] == 1) moved[i] = 1;
+		}
+		
+		return true;
+	}
+	
+	public static void drawMap() {
+		map = new int[L][L];
+		for (int i = 1; i <= N; i++) {
+			if(out[i] == 1) continue;
+			int curr = kList[i].r;
+			int curc = kList[i].c;
+			
+			for (int j = curr; j < curr+w[i]; j++) {
+				for (int k = curc; k < curc+h[i]; k++) {
+					map[j][k] = i;
+				}
+			}
+		}
+	}
+	
+	public static class Knight	{
 		int r;
 		int c;
 		
-		public Santa(int r, int c) {
+		public Knight(int r, int c) {
 			this.r = r;
 			this.c = c;
 		}
