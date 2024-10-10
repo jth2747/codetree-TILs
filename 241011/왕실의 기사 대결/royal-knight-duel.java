@@ -39,10 +39,10 @@ public class Main {
 		
 		kList = new Knight[N+1];
 		health = new int[N+1];
-		w = new int[N+1];
-		h = new int[N+1];
-		d = new int[N+1];
-		out = new int[N+1];
+		w = new int[N+1]; // 가로값 저장 
+		h = new int[N+1]; // 세로값 저장 
+		d = new int[N+1]; // 데미지 받은 값 저장 
+		out = new int[N+1]; // out 체크
 		
 		for (int i = 1; i <= N; i++) {
 			st = new StringTokenizer(br.readLine());
@@ -105,8 +105,10 @@ public class Main {
 				if(moved[map[i][j]] == 0) continue;
 				
 				if(obs[i][j] == 1) {
-					health[map[i][j]]--;
-					d[map[i][j]]++;
+					if(health[map[i][j]] > 0) {
+						health[map[i][j]]--;
+						d[map[i][j]]++;
+					}
 				}
 			}
 		}
