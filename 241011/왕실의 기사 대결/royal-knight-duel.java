@@ -69,6 +69,8 @@ public class Main {
 			checked = new int[N+1];
 			moved = new int[N+1];
 			
+			if(out[curNum] == 1) continue;
+			
 			boolean cflag = checkQ(curNum, curDir);
 			
 			if(cflag) {
@@ -188,18 +190,23 @@ public class Main {
 			int curcto = curcfrom + h[cur];
 			for (int i = currfrom; i < currto; i++) {
 				for (int j = curcfrom; j < curcto; j++) { 
+					
+					// 다음에 볼 
 					int nr = i + dr[dir];
 					int nc = j + dc[dir];
 					
+					//  바깥이면 못움직임, false
 					if(nr < 0 || nc < 0 || nr >= L || nc >= L) {
 						return false;
 					}
 					
+					// 벽이면 못움직임, false
 					if(obs[nr][nc] == 2) return false;
 					
 					//나자신은 다음꺼그냥 보기
 					if(map[nr][nc] == cur) continue;
 					
+					//그칸에 맵이 있다, 그 기사도 체크
 					if(map[nr][nc] != 0) {
 						q.offer(map[nr][nc]);
 						checked[map[nr][nc]] = 1;
