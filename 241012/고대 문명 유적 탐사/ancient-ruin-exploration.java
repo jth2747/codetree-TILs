@@ -16,7 +16,7 @@ public class Main {
 	static int yidx;
 	static int K, M, ans;
 	static int fRot, fR, fC;
-	static int maxVal;
+	static int maxVal, firstMax;
 	static ArrayList<Pos> list;
 	static boolean flag;
 	public static void main(String[] args) throws IOException {
@@ -48,14 +48,21 @@ public class Main {
 		
 		for (int tc = 0; tc < K; tc++) {
 			ans = 0;
-			maxVal = Integer.MIN_VALUE;
+			maxVal = 0;
+			firstMax = Integer.MIN_VALUE;
 			nextMap = new int[5][5];
+			fRot = 0;
+			fR = 0;
+			fC = 0;
+			//yidx = 0;
 			//90도, 180도, 270도 중 하나의 각도, 90도 회전을 몇번할지에 대한 체크
 			for (int rot = 1; rot <= 3; rot++) {
+				//yidx = 0;
 				for (int r = 1; r <= 3; r++) {
 					for (int c = 1; c <= 3; c++) {
 						yidx = 0;
 						mapSet();
+						
 						
 						flag = false;
 						simulate(r, c, rot);
@@ -63,16 +70,20 @@ public class Main {
 				}
 			}
 			
-			ans = maxVal;
+			//다 돌았는데도 0이면
+			if(maxVal == 0) break;
 			
-			if(ans == 0) break;
+			mapSet();
+			map = rotate(fR, fC, fRot);
+			
+			finalCheck();
 			
 			System.out.print(ans + " ");
 			
 			//orgMap 변경
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {
-					orgMap[i][j] = nextMap[i][j];
+					orgMap[i][j] = map[i][j];
 				}
 			}
 		}
@@ -97,25 +108,10 @@ public class Main {
 		
 	}
 	
-	public static void mapSet() {
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				map[i][j] = orgMap[i][j];
-			}
-		}
-	}
-	
-	public static void simulate(int r, int c, int rotCnt) {
-		for (int j = 0; j < rotCnt; j++) {
-			rotate(r, c);
-		}
-		
-		
-		
+	public static void finalCheck() {
 		int finalCnt = 0;
-		int cntCheck = 0;
 		while(true) {
-			cntCheck = 0;
+			finalCnt = 0;
 			list = new ArrayList<Pos>();
 			
 			visited = new int[5][5];
@@ -124,15 +120,21 @@ public class Main {
 					if(visited[i][j] == 1) continue;
 					
 					int temp = bfs(i, j);
+					
+					
+					
 					if(temp >= 3) {
 						list.add(new Pos(i, j));
-						cntCheck += temp;
+						finalCnt += temp;
 					}
 					
 				}
 			}
 			
-			if(cntCheck == 0) break;
+			
+			//3칸이상 붙어있는게 없으면 끝
+			if(finalCnt == 0) break;
+			
 			
 			//지우기
 			visited = new int[5][5];
@@ -143,29 +145,49 @@ public class Main {
 			//채우기
 			fill();
 			
-			finalCnt += cntCheck;
+			ans += finalCnt;
 		}
-		
-		
-		
-		//(1) 유물 1차 획득 가치를 최대화하고, 
-		//(2) 회전한 각도가 가장 작은 방법을 선택합니다. 
-		//(3) 회전 중심 좌표의 열이 가장 작은 구간을, 그리고 열이 같다면 행이 가장 작은 구간을
-		//=> 같은건 그냥 패스
-		if(finalCnt > maxVal) {
-			
-			for (int i = 0; i < 5; i++) {
-				for (int j = 0; j < 5; j++) {
-					nextMap[i][j] = map[i][j];
-				}
+	}
+	
+	public static void mapSet() {
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				map[i][j] = orgMap[i][j];
 			}
-			
-			maxVal = finalCnt;
+		}
+	}
+	
+	public static void simulate(int r, int c, int rotCnt) {
+		map = rotate(r, c, rotCnt);
+		
+		int cntCheck = 0; //
+		
+		
+		int max = 0;
+		
+		//유물 1차 탐색
+		visited = new int[5][5];
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				if(visited[i][j] == 1) continue;
+				
+				int temp = bfs(i, j);
+				
+				if(temp >= 3) {
+					cntCheck += temp;
+				}
+				
+			}
 		}
 		
-		if(finalCnt != 0) {
-			flag = true;
+		if(cntCheck > maxVal) {
+			fRot = rotCnt;
+			fR = r;
+			fC = c;
+			maxVal = cntCheck;
 		}
+			
+		
 	}
 	
 	public static void fill() {
@@ -240,22 +262,33 @@ public class Main {
 	}
 	
 	
-	public static void rotate(int r, int c) {
-		//3×3 격자 선택
-		//회전 시 큐 탐색
+	public static int[][] rotate(int r, int c, int cnt) {
+		int[][] tmap = new int[5][5];
+		
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				tmap[i][j] = map[i][j];
+			}
+		}
+		
 		Queue<Integer> q = new LinkedList<Integer>();
-		
-		for (int i = c-1; i <= c+1; i++) {
-			for (int j = r+1; j >= r-1; j--) {
-				q.offer(map[j][i]);
+		for (int t = 0; t < cnt; t++) {
+			q.clear();
+			for (int i = c-1; i <= c+1; i++) {
+				for (int j = r+1; j >= r-1; j--) {
+					q.offer(tmap[j][i]);
+				}
+			}
+			
+			for (int i = r-1; i <= r+1; i++) {
+				for (int j = c-1; j <= c+1; j++) {
+					tmap[i][j] = q.poll();
+				}
 			}
 		}
 		
-		for (int i = r-1; i <= r+1; i++) {
-			for (int j = c-1; j <= c+1; j++) {
-				map[i][j] = q.poll();
-			}
-		}
+		
+		return tmap;
 	}
 	
 	
