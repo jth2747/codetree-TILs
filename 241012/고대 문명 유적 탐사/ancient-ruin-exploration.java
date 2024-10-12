@@ -55,12 +55,12 @@ public class Main {
 			fR = 0;
 			fC = 0;
 			//yidx = 0;
+			//yidx = 0;
 			//90도, 180도, 270도 중 하나의 각도, 90도 회전을 몇번할지에 대한 체크
 			for (int rot = 1; rot <= 3; rot++) {
 				//yidx = 0;
 				for (int r = 1; r <= 3; r++) {
 					for (int c = 1; c <= 3; c++) {
-						yidx = 0;
 						mapSet();
 						
 						
