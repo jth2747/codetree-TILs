@@ -59,8 +59,8 @@ public class Main {
 			//90도, 180도, 270도 중 하나의 각도, 90도 회전을 몇번할지에 대한 체크
 			for (int rot = 1; rot <= 3; rot++) {
 				//yidx = 0;
-				for (int r = 1; r <= 3; r++) {
-					for (int c = 1; c <= 3; c++) {
+				for (int c = 1; c <= 3; c++) {
+					for (int r = 1; r <= 3; r++) {
 						mapSet();
 						
 						
@@ -197,7 +197,7 @@ public class Main {
 			for (int r = 4; r >= 0; r--) {
 				if(map[r][c] != -1) continue;
 				
-				map[r][c] = yumul[(yidx+M)%M];
+				map[r][c] = yumul[yidx];
 				yidx++;
 			}
 		}
